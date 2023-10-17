@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from './fbconfig'; 
-import { addDoc, collection, getDocs } from 'firebase/firestore'; 
+import { addDoc, collection, getDocs, deleteDoc, doc, updateDoc} from 'firebase/firestore'; 
 
 function CRUD() {
   const [dataItem, setDataItem] = useState("");
@@ -8,8 +8,11 @@ function CRUD() {
   const [dataDescription, setDataDescription] = useState("");
   const [dataContainment, setDataContainment] = useState("");
   const [readData, setReadData] = useState([]);
+  const [id, setId] = useState("");
+  const [showDoc, setShowDoc] = useState(false);
   const OurCollection = collection(db, "subjects");
 
+//CRUD Create functionality
   const crudCreate = async () => {
     try {
       await addDoc(OurCollection, {
@@ -28,6 +31,31 @@ function CRUD() {
       console.error("Error creating document:", error);
     }
   }
+
+  //CRUD delete functionality
+  const crudDelete = async (id) => {
+    const docToDelete = doc(db, "subjects", id);
+    await deleteDoc(docToDelete);
+  }
+
+  //CRUD Update/Edit Functionality
+  const crudUpdate = async () => {
+   const updateData = doc(db, "subjects", id);
+   await updateDoc(updateData, {item:dataItem, scpClass:dataScpClass, description:dataDescription, containment:dataContainment })
+  }
+
+  const showEdit = async (id, item, scpClass, description, containment) =>{
+    setDataItem(item);
+    setDataClass(scpClass);
+    setDataDescription(description);
+    setDataContainment(containment);
+    setId(id);
+    setShowDoc(true);
+    
+  }
+ 
+
+  
 
   useEffect(() => {
     const getData = async () => {
@@ -57,6 +85,7 @@ function CRUD() {
       <br />
       <br />
       <button onClick={crudCreate}>Create new document</button>
+      <button onClick={crudUpdate}>Update Document</button>
 
       <div>
         <ul>
@@ -67,9 +96,16 @@ function CRUD() {
               Description: {item.description}
               <br />
               Containment: {item.containment}
+              <li>
+              <button onClick={()=> crudDelete(item.id)}>Delete</button>
+              <br />
+              <button onClick={()=>showEdit(item.id, item.Item, item.containment, item.description, item.scpClass)}>Edit</button>
+              </li>
             </li>
           ))}
+          
         </ul>
+        
       </div>
 
       <div>
